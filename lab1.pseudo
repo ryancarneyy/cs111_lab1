@@ -1,0 +1,12 @@
+
+
+connect ls's stdout to write end of pipe 1
+close(fd[1])
+
+create pipe 2 in parent process
+fd[0] is connected to read end for pipe 1,   //for parent and child process
+change child's stdin to read pipe 1, 
+change child's stdout to read pipe 2,
+
+fd1[0] is connected to read end for pipe 2, 
+fd1[1] is connected to write end for pipe 2,
