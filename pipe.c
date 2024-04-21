@@ -8,29 +8,91 @@
 
 int main(int argc, char *argv[])
 {	
-
-
-	// checking number of arguments
-	if(argc == 1) {
+	if(argc == 1) {					// 0 ARG PIPE
 		printf("Usage: ./pipe <command> ... <command>\n");
 		return 1;
 	}
-	if(argc == 2) {
+	if(argc == 2) {					// 1 ARG PIPE
 		system(argv[1]);
 		return 0;
 	}
 
-	int (*pipes)[2] = malloc((argc - 2) * sizeof(*pipes));
+	if(argc == 3) {                   // 2 ARG PIPE
+		int pipefd[2];
+		int pids[2];
+		int status[2];
+
+		if(pipe(pipefd) == -1) {
+			perror("Error opening pipe\n");
+			return 1;
+		}
+		
+		pids[0] = fork();
+
+		if( pids[0] == -1 ) {
+			perror("Error opening first child process\n");
+			return 1;
+		}
+		// if pid1 == 0 then child process running
+		else if ( pids[0] == 0 ) {
+			// close the read end of the pipe in child process (unneeded)
+			close(pipefd[0]);
+
+			// redirecting stdout of LHS to pipe's write
+			if(dup2(pipefd[1], STDOUT_FILENO) == -1) {
+				perror("Error connecting ls's stdout to pipe's write\n");
+				return 1;
+			}
+			// closing pipe's write in child process (unneeded)
+			close(pipefd[1]);
+			// run LHS
+			system(argv[1]);
+			return 0;
+		}
+		else {
+			// wait for first child process to finish
+			waitpid(pids[0], &status[0], 0);
+
+			// close write fd for parent process
+			close(pipefd[1]);
+			// 2nd child process
+			pids[1] = fork();
+
+			if (pids[1] == -1 ) {
+				perror("Error opening second child process\n");
+				return 1;
+			}
+			else if(pids[1] == 0) {
+				// redirect stdin to pipe's read
+				if(dup2(pipefd[0], STDIN_FILENO) == -1) {
+					perror("Error connecting ls's stdout to pipe's write\n");
+					return 1;
+				}
+				// close child process's read
+				close(pipefd[0]);
+				// testing that write is closed
+				close(pipefd[1]);
+
+				// run the second arg
+				system(argv[2]);
+				return 0;
+			}
+			else {
+				// wait for RHS child process to finish 
+				waitpid(pids[1], &status[1], 0);
+				// close read pipe in parent process
+				close(pipefd[0]);
+				return 0;
+			}
+		}
+	}
+
+	int (*pipes)[2] = malloc((argc - 2) * sizeof(*pipes));				// 3 OR MORE ARG PIPE
 	pid_t *pids = malloc((argc - 1) * sizeof(*pids));
 	int *status = malloc((argc - 1) * sizeof(*status));
 
-	if(argc == 3) {
-		//TODO
-
-	}
-
 	if(pipe(pipes[0]) == -1) {
-		printf("Error opening pipe\n");
+		perror("Error opening pipe\n");
 		return 1;
 	}
 	
