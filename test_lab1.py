@@ -51,12 +51,51 @@ class TestLab1(unittest.TestCase):
         self.assertTrue(orphan_check, msg="Found orphan processes")
         subprocess.call(['rm', 'trace.log'])
         self.assertTrue(self._make_clean, msg='make clean failed')
-    
+
     def test_bogus(self):
         self.assertTrue(self.make, msg='make failed')
         pipe_result = subprocess.run(('./pipe', 'ls', 'bogus'), stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
         self.assertTrue(pipe_result.returncode, msg='Bogus argument should cause an error, expect nonzero return code.')
+        self.assertNotEqual(pipe_result.stderr, '', msg='Error should be reported to standard error.')
+        self.assertTrue(self._make_clean, msg='make clean failed')
+
+    def test_bogus1(self):
+        self.assertTrue(self.make, msg='make failed')
+        pipe_result = subprocess.run(('./pipe', 'bogus'), stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        self.assertTrue(pipe_result.returncode, msg='Bogus argument should cause an error, expect nonzero return code.')
+        self.assertNotEqual(pipe_result.stderr, '', msg='Error should be reported to standard error.')
+        self.assertTrue(self._make_clean, msg='make clean failed')
+    def test_bogus_12(self):
+        self.assertTrue(self.make, msg='make failed')
+        pipe_result = subprocess.run(('./pipe', 'bogus', 'ls'), stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        self.assertTrue(pipe_result.returncode, msg='B12:Bogus argument should cause an error, expect nonzero return code.')
+        self.assertNotEqual(pipe_result.stderr, '', msg='Error should be reported to standard error.')
+        self.assertTrue(self._make_clean, msg='make clean failed')
+
+    def test_bogus13(self):
+        self.assertTrue(self.make, msg='make failed')
+        pipe_result = subprocess.run(('./pipe', 'bogus', 'ls', 'wc'), stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        self.assertTrue(pipe_result.returncode, msg='B13:Bogus argument should cause an error, expect nonzero return code.')
+        self.assertNotEqual(pipe_result.stderr, '', msg='Error should be reported to standard error.')
+        self.assertTrue(self._make_clean, msg='make clean failed')
+    
+    def test_bogus23(self):
+        self.assertTrue(self.make, msg='make failed')
+        pipe_result = subprocess.run(('./pipe', 'ls', 'bogus', 'wc'), stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        self.assertTrue(pipe_result.returncode, msg='B23:Bogus argument should cause an error, expect nonzero return code.')
+        self.assertNotEqual(pipe_result.stderr, '', msg='Error should be reported to standard error.')
+        self.assertTrue(self._make_clean, msg='make clean failed')
+
+    def test_bogus33(self):
+        self.assertTrue(self.make, msg='make failed')
+        pipe_result = subprocess.run(('./pipe', 'ls', 'wc', 'bogus'), stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        self.assertTrue(pipe_result.returncode, msg='B33:Bogus argument should cause an error, expect nonzero return code.')
         self.assertNotEqual(pipe_result.stderr, '', msg='Error should be reported to standard error.')
         self.assertTrue(self._make_clean, msg='make clean failed')
 
